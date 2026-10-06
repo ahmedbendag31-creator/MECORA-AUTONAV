@@ -1,0 +1,1055 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>MECORA AUTONAV</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background: #0b0f14;
+    color: #e8edf3;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+header {
+    padding: 22px;
+    text-align: center;
+    border-bottom: 1px solid #202833;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 28px;
+    letter-spacing: 2px;
+}
+
+header p {
+    margin: 8px 0 0;
+    color: #8e9aaa;
+}
+
+.container {
+    max-width: 1250px;
+    margin: auto;
+    padding: 20px;
+}
+
+.layout {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 20px;
+}
+
+.panel {
+    background: #111720;
+    border: 1px solid #242d38;
+    border-radius: 12px;
+    padding: 15px;
+}
+
+canvas {
+    display: block;
+    width: 100%;
+    max-width: 900px;
+    margin: auto;
+    background: #080c11;
+    border: 1px solid #293442;
+    border-radius: 8px;
+}
+
+.controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+button {
+    border: 1px solid #344150;
+    background: #18212c;
+    color: #e8edf3;
+    padding: 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+button:hover {
+    background: #222e3c;
+}
+
+button.active {
+    background: #263c52;
+}
+
+.telemetry {
+    display: grid;
+    gap: 10px;
+}
+
+.metric {
+    background: #0c1219;
+    border: 1px solid #202a35;
+    padding: 12px;
+    border-radius: 8px;
+}
+
+.metric span {
+    display: block;
+    color: #7f8b99;
+    font-size: 12px;
+    margin-bottom: 5px;
+}
+
+.metric strong {
+    font-size: 18px;
+}
+
+.status {
+    margin-top: 15px;
+    padding: 12px;
+    border-radius: 8px;
+    background: #0c1219;
+    border: 1px solid #202a35;
+}
+
+.status strong {
+    color: #69d2ff;
+}
+
+.legend {
+    margin-top: 15px;
+    color: #8e9aaa;
+    font-size: 13px;
+    line-height: 1.7;
+}
+
+.dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 5px;
+}
+
+.green { background: #45e08a; }
+.red { background: #ff6464; }
+.blue { background: #56b8ff; }
+.yellow { background: #ffd166; }
+
+@media(max-width: 900px) {
+    .layout {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <h1>🤖 MECORA AUTONAV</h1>
+    <p>AI-Based Autonomous Navigation & Obstacle Avoidance System</p>
+</header>
+
+<div class="container">
+
+    <div class="layout">
+
+        <div class="panel">
+
+            <canvas id="simulation"
+                    width="900"
+                    height="630">
+            </canvas>
+
+            <div class="controls">
+
+                <button id="autoBtn" class="active">
+                    🤖 Autonomous
+                </button>
+
+                <button id="manualBtn">
+                    🎮 Manual
+                </button>
+
+                <button id="randomBtn">
+                    🌍 New Environment
+                </button>
+
+                <button id="pauseBtn">
+                    ⏸ Pause
+                </button>
+
+                <button id="resetBtn">
+                    🔄 Reset
+                </button>
+
+            </div>
+
+        </div>
+
+        <div class="panel">
+
+            <h2>Live Telemetry</h2>
+
+            <div class="telemetry">
+
+                <div class="metric">
+                    <span>Mode</span>
+                    <strong id="mode">AUTONOMOUS</strong>
+                </div>
+
+                <div class="metric">
+                    <span>Action</span>
+                    <strong id="action">FORWARD</strong>
+                </div>
+
+                <div class="metric">
+                    <span>Distance to Target</span>
+                    <strong id="distance">0</strong>
+                </div>
+
+                <div class="metric">
+                    <span>Front Sensor</span>
+                    <strong id="front">0</strong>
+                </div>
+
+                <div class="metric">
+                    <span>Left Sensor</span>
+                    <strong id="left">0</strong>
+                </div>
+
+                <div class="metric">
+                    <span>Right Sensor</span>
+                    <strong id="right">0</strong>
+                </div>
+
+                <div class="metric">
+                    <span>Steps</span>
+                    <strong id="steps">0</strong>
+                </div>
+
+                <div class="metric">
+                    <span>Safety Overrides</span>
+                    <strong id="overrides">0</strong>
+                </div>
+
+            </div>
+
+            <div class="status">
+                Status:
+                <strong id="status">
+                    Searching for target...
+                </strong>
+            </div>
+
+            <div class="legend">
+
+                <div>
+                    <span class="dot green"></span>
+                    Robot
+                </div>
+
+                <div>
+                    <span class="dot red"></span>
+                    Obstacles
+                </div>
+
+                <div>
+                    <span class="dot blue"></span>
+                    Target
+                </div>
+
+                <div>
+                    <span class="dot yellow"></span>
+                    Virtual sensors
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+const canvas = document.getElementById("simulation");
+const ctx = canvas.getContext("2d");
+
+const W = canvas.width;
+const H = canvas.height;
+
+const robot = {
+    x: 100,
+    y: 100,
+    angle: 0,
+    radius: 13
+};
+
+let target = {
+    x: 780,
+    y: 520
+};
+
+let obstacles = [];
+
+let path = [];
+
+let mode = "AUTO";
+let paused = false;
+
+let steps = 0;
+let overrides = 0;
+
+const MAX_SENSOR = 180;
+const SPEED = 1.8;
+const TURN_SPEED = 0.075;
+
+function random(min, max) {
+    return Math.random() * (max - min) + min;
+}
+
+function distance(a, b) {
+    return Math.hypot(a.x - b.x, a.y - b.y);
+}
+
+function generateEnvironment() {
+
+    obstacles = [];
+
+    for (let i = 0; i < 12; i++) {
+
+        const w = random(50, 120);
+        const h = random(40, 100);
+
+        const x = random(80, W - w - 50);
+        const y = random(60, H - h - 50);
+
+        obstacles.push({
+            x,
+            y,
+            w,
+            h
+        });
+    }
+
+    robot.x = 80;
+    robot.y = 80;
+    robot.angle = 0;
+
+    target.x = random(650, 820);
+    target.y = random(430, 560);
+
+    path = [];
+
+    steps = 0;
+    overrides = 0;
+}
+
+function pointInsideObstacle(x, y) {
+
+    for (const o of obstacles) {
+
+        if (
+            x >= o.x &&
+            x <= o.x + o.w &&
+            y >= o.y &&
+            y <= o.y + o.h
+        ) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+function sensor(angle) {
+
+    let d = 0;
+
+    while (d < MAX_SENSOR) {
+
+        d += 3;
+
+        const x =
+            robot.x +
+            Math.cos(angle) * d;
+
+        const y =
+            robot.y +
+            Math.sin(angle) * d;
+
+        if (
+            x < 0 ||
+            x > W ||
+            y < 0 ||
+            y > H ||
+            pointInsideObstacle(x, y)
+        ) {
+            return d;
+        }
+    }
+
+    return MAX_SENSOR;
+}
+
+function sensors() {
+
+    return {
+
+        front: sensor(robot.angle),
+
+        left: sensor(
+            robot.angle - Math.PI / 4
+        ),
+
+        right: sensor(
+            robot.angle + Math.PI / 4
+        )
+
+    };
+}
+
+function targetAngle() {
+
+    return Math.atan2(
+        target.y - robot.y,
+        target.x - robot.x
+    );
+}
+
+function normalizeAngle(a) {
+
+    while (a > Math.PI)
+        a -= Math.PI * 2;
+
+    while (a < -Math.PI)
+        a += Math.PI * 2;
+
+    return a;
+}
+
+function autonomousController() {
+
+    const s = sensors();
+
+    const frontDanger = 45;
+    const frontWarning = 80;
+
+    let action = "FORWARD";
+
+    const desired =
+        targetAngle();
+
+    let error =
+        normalizeAngle(
+            desired - robot.angle
+        );
+
+    /*
+       Browser demonstration policy.
+
+       This reproduces the navigation behavior
+       of the MECORA simulation architecture.
+
+       The original sklearn .joblib model does
+       NOT execute directly inside the browser.
+    */
+
+    if (s.front < frontDanger) {
+
+        overrides++;
+
+        if (s.left > s.right) {
+
+            robot.angle -= TURN_SPEED;
+
+            action = "TURN_LEFT";
+
+        } else {
+
+            robot.angle += TURN_SPEED;
+
+            action = "TURN_RIGHT";
+        }
+
+    }
+
+    else if (s.front < frontWarning) {
+
+        overrides++;
+
+        if (s.left > s.right) {
+
+            robot.angle -= TURN_SPEED * 0.6;
+
+            action = "FORWARD_LEFT";
+
+        } else {
+
+            robot.angle += TURN_SPEED * 0.6;
+
+            action = "FORWARD_RIGHT";
+        }
+
+    }
+
+    else {
+
+        if (error > 0.15) {
+
+            robot.angle += TURN_SPEED;
+
+            action = "FORWARD_RIGHT";
+
+        }
+
+        else if (error < -0.15) {
+
+            robot.angle -= TURN_SPEED;
+
+            action = "FORWARD_LEFT";
+
+        }
+
+        else {
+
+            action = "FORWARD";
+        }
+    }
+
+    return action;
+}
+
+function move(action) {
+
+    if (action === "TURN_LEFT") {
+
+        robot.angle -= TURN_SPEED;
+
+    }
+
+    else if (action === "TURN_RIGHT") {
+
+        robot.angle += TURN_SPEED;
+
+    }
+
+    else if (action === "FORWARD_LEFT") {
+
+        robot.angle -= TURN_SPEED * 0.5;
+
+        robot.x +=
+            Math.cos(robot.angle) * SPEED;
+
+        robot.y +=
+            Math.sin(robot.angle) * SPEED;
+
+    }
+
+    else if (action === "FORWARD_RIGHT") {
+
+        robot.angle += TURN_SPEED * 0.5;
+
+        robot.x +=
+            Math.cos(robot.angle) * SPEED;
+
+        robot.y +=
+            Math.sin(robot.angle) * SPEED;
+
+    }
+
+    else {
+
+        robot.x +=
+            Math.cos(robot.angle) * SPEED;
+
+        robot.y +=
+            Math.sin(robot.angle) * SPEED;
+    }
+
+    robot.x =
+        Math.max(
+            robot.radius,
+            Math.min(W - robot.radius, robot.x)
+        );
+
+    robot.y =
+        Math.max(
+            robot.radius,
+            Math.min(H - robot.radius, robot.y)
+        );
+}
+
+function collision() {
+
+    return pointInsideObstacle(
+        robot.x,
+        robot.y
+    );
+}
+
+function drawGrid() {
+
+    ctx.strokeStyle = "#111a23";
+    ctx.lineWidth = 1;
+
+    for (let x = 0; x < W; x += 30) {
+
+        ctx.beginPath();
+
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, H);
+
+        ctx.stroke();
+    }
+
+    for (let y = 0; y < H; y += 30) {
+
+        ctx.beginPath();
+
+        ctx.moveTo(0, y);
+        ctx.lineTo(W, y);
+
+        ctx.stroke();
+    }
+}
+
+function drawObstacles() {
+
+    for (const o of obstacles) {
+
+        ctx.fillStyle = "#d94c4c";
+
+        ctx.fillRect(
+            o.x,
+            o.y,
+            o.w,
+            o.h
+        );
+
+        ctx.strokeStyle = "#ff7777";
+
+        ctx.strokeRect(
+            o.x,
+            o.y,
+            o.w,
+            o.h
+        );
+    }
+}
+
+function drawTarget() {
+
+    ctx.beginPath();
+
+    ctx.arc(
+        target.x,
+        target.y,
+        17,
+        0,
+        Math.PI * 2
+    );
+
+    ctx.strokeStyle = "#56b8ff";
+    ctx.lineWidth = 3;
+
+    ctx.stroke();
+
+    ctx.beginPath();
+
+    ctx.arc(
+        target.x,
+        target.y,
+        6,
+        0,
+        Math.PI * 2
+    );
+
+    ctx.fillStyle = "#56b8ff";
+
+    ctx.fill();
+}
+
+function drawSensors() {
+
+    const s = sensors();
+
+    const sensorAngles = [
+
+        {
+            value: s.left,
+            angle: robot.angle - Math.PI / 4
+        },
+
+        {
+            value: s.front,
+            angle: robot.angle
+        },
+
+        {
+            value: s.right,
+            angle: robot.angle + Math.PI / 4
+        }
+
+    ];
+
+    for (const sensorData of sensorAngles) {
+
+        const x =
+            robot.x +
+            Math.cos(sensorData.angle) *
+            sensorData.value;
+
+        const y =
+            robot.y +
+            Math.sin(sensorData.angle) *
+            sensorData.value;
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+            robot.x,
+            robot.y
+        );
+
+        ctx.lineTo(x, y);
+
+        ctx.strokeStyle =
+            sensorData.value < 50
+                ? "#ff6464"
+                : "#ffd166";
+
+        ctx.lineWidth = 2;
+
+        ctx.stroke();
+    }
+}
+
+function drawPath() {
+
+    if (path.length < 2)
+        return;
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+        path[0].x,
+        path[0].y
+    );
+
+    for (const p of path) {
+
+        ctx.lineTo(
+            p.x,
+            p.y
+        );
+    }
+
+    ctx.strokeStyle =
+        "rgba(86,184,255,0.35)";
+
+    ctx.lineWidth = 2;
+
+    ctx.stroke();
+}
+
+function drawRobot() {
+
+    ctx.save();
+
+    ctx.translate(
+        robot.x,
+        robot.y
+    );
+
+    ctx.rotate(
+        robot.angle
+    );
+
+    ctx.beginPath();
+
+    ctx.arc(
+        0,
+        0,
+        robot.radius,
+        0,
+        Math.PI * 2
+    );
+
+    ctx.fillStyle = "#45e08a";
+
+    ctx.fill();
+
+    ctx.strokeStyle = "#9affc5";
+
+    ctx.lineWidth = 2;
+
+    ctx.stroke();
+
+    ctx.beginPath();
+
+    ctx.moveTo(10, 0);
+    ctx.lineTo(-5, -6);
+    ctx.lineTo(-5, 6);
+    ctx.closePath();
+
+    ctx.fillStyle = "#ffffff";
+
+    ctx.fill();
+
+    ctx.restore();
+}
+
+function updateTelemetry(action) {
+
+    const s = sensors();
+
+    document.getElementById("mode")
+        .textContent =
+        mode === "AUTO"
+            ? "AUTONOMOUS"
+            : "MANUAL";
+
+    document.getElementById("action")
+        .textContent = action;
+
+    document.getElementById("distance")
+        .textContent =
+        distance(robot, target)
+            .toFixed(2);
+
+    document.getElementById("front")
+        .textContent =
+        s.front.toFixed(0);
+
+    document.getElementById("left")
+        .textContent =
+        s.left.toFixed(0);
+
+    document.getElementById("right")
+        .textContent =
+        s.right.toFixed(0);
+
+    document.getElementById("steps")
+        .textContent = steps;
+
+    document.getElementById("overrides")
+        .textContent = overrides;
+
+    const d =
+        distance(robot, target);
+
+    if (d < 25) {
+
+        document.getElementById("status")
+            .textContent =
+            "TARGET REACHED ✓";
+
+    }
+
+    else if (collision()) {
+
+        document.getElementById("status")
+            .textContent =
+            "COLLISION";
+
+    }
+
+    else {
+
+        document.getElementById("status")
+            .textContent =
+            "Navigating...";
+    }
+}
+
+function draw() {
+
+    ctx.clearRect(
+        0,
+        0,
+        W,
+        H
+    );
+
+    drawGrid();
+
+    drawPath();
+
+    drawObstacles();
+
+    drawTarget();
+
+    drawSensors();
+
+    drawRobot();
+}
+
+function update() {
+
+    if (!paused) {
+
+        let action = "FORWARD";
+
+        if (mode === "AUTO") {
+
+            action =
+                autonomousController();
+
+        }
+
+        else {
+
+            action =
+                manualAction;
+        }
+
+        move(action);
+
+        path.push({
+            x: robot.x,
+            y: robot.y
+        });
+
+        if (path.length > 1000) {
+
+            path.shift();
+        }
+
+        steps++;
+
+        if (
+            distance(robot, target) < 25
+        ) {
+
+            document.getElementById("status")
+                .textContent =
+                "TARGET REACHED ✓";
+        }
+
+        updateTelemetry(action);
+    }
+
+    draw();
+
+    requestAnimationFrame(update);
+}
+
+let manualAction = "FORWARD";
+
+document.addEventListener(
+    "keydown",
+    e => {
+
+        if (mode !== "MANUAL")
+            return;
+
+        if (e.key === "ArrowLeft") {
+
+            manualAction =
+                "TURN_LEFT";
+        }
+
+        else if (e.key === "ArrowRight") {
+
+            manualAction =
+                "TURN_RIGHT";
+        }
+
+        else if (e.key === "ArrowUp") {
+
+            manualAction =
+                "FORWARD";
+        }
+
+        else if (e.key === "ArrowDown") {
+
+            robot.x -=
+                Math.cos(robot.angle) * SPEED;
+
+            robot.y -=
+                Math.sin(robot.angle) * SPEED;
+
+            manualAction =
+                "BACKWARD";
+        }
+    }
+);
+
+document.getElementById("autoBtn")
+    .addEventListener(
+        "click",
+        () => {
+
+            mode = "AUTO";
+
+            document.getElementById("autoBtn")
+                .classList.add("active");
+
+            document.getElementById("manualBtn")
+                .classList.remove("active");
+        }
+    );
+
+document.getElementById("manualBtn")
+    .addEventListener(
+        "click",
+        () => {
+
+            mode = "MANUAL";
+
+            document.getElementById("manualBtn")
+                .classList.add("active");
+
+            document.getElementById("autoBtn")
+                .classList.remove("active");
+        }
+    );
+
+document.getElementById("randomBtn")
+    .addEventListener(
+        "click",
+        generateEnvironment
+    );
+
+document.getElementById("pauseBtn")
+    .addEventListener(
+        "click",
+        () => {
+
+            paused = !paused;
+
+            document.getElementById("pauseBtn")
+                .textContent =
+                paused
+                    ? "▶ Resume"
+                    : "⏸ Pause";
+        }
+    );
+
+document.getElementById("resetBtn")
+    .addEventListener(
+        "click",
+        generateEnvironment
+    );
+
+generateEnvironment();
+
+update();
+
+</script>
+
+</body>
+</html>
