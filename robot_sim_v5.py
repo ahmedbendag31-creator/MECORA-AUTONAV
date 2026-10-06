@@ -39,7 +39,7 @@ from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent
 
-MODEL_FILE = PROJECT_ROOT / "models" / "robot_ml_model_v5.joblib"
+MODEL_FILE = PROJECT_ROOT / "robot_ml_model_v5.joblib"
 
 if not MODEL_FILE.exists():
     raise FileNotFoundError(
